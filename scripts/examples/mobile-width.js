@@ -1,7 +1,7 @@
 // Example: put the hidden window at phone width with the mobile layout, so a
 // screenshot shows what a phone user sees:
-//   node <skill>/scripts/cdp.mjs eval <skill>/scripts/examples/mobile-width.js
-//   node <skill>/scripts/cdp.mjs shot mobile.png
+//   node <skill>/scripts/cdp.mjs [-i N] eval <skill>/scripts/examples/mobile-width.js
+//   node <skill>/scripts/cdp.mjs [-i N] shot mobile.png
 //
 // Resizing the real window persists across cdp.mjs calls, unlike a CDP
 // Emulation.setDeviceMetricsOverride, which resets when the socket closes.

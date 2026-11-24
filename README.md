@@ -32,13 +32,16 @@ Ask your agent to check a plugin change in Obsidian, for example "build the plug
 
 You can also run the scripts by hand. See [SKILL.md](SKILL.md) for the full workflow.
 
+Every script takes `-i N` to pick an instance (default 0). Instance N has its own folder (`~/obsidian-test-N`), display and port (`9222+N`), so several agent sessions can test side by side.
+
 | Script | Runs in | What it does |
 | --- | --- | --- |
 | `scripts/install.sh` | WSL, as root | Installs Xvfb, jq and the official Obsidian `.deb` (latest, or a version you pass) |
-| `scripts/reset-vault.sh [repo]` | WSL | Recreates the throwaway vault and profile and installs the plugin build |
-| `scripts/launch.sh` | WSL | Starts Xvfb and Obsidian hidden, with CDP on `127.0.0.1:9222` |
-| `scripts/stop.sh` | WSL | Stops Obsidian and Xvfb |
-| `scripts/cdp.mjs` | Windows | `eval` code in the renderer, `shot` a screenshot, or send a raw `cdp` call |
+| `scripts/status.sh` | WSL | Lists instances and whether each is running |
+| `scripts/reset-vault.sh [-i N] [repo] [data.json]` | WSL | Recreates the throwaway vault and profile and installs the plugin build |
+| `scripts/launch.sh [-i N]` | WSL | Starts Xvfb and Obsidian hidden, with CDP on `127.0.0.1:9222+N` |
+| `scripts/stop.sh [-i N]` | WSL | Stops Obsidian and Xvfb |
+| `scripts/cdp.mjs [-i N]` | Windows | `eval` code in the renderer, `shot` a screenshot, or send a raw `cdp` call |
 | `scripts/examples/smoke.js` | via `cdp.mjs` | Accepts the trust prompt and reports loaded plugins |
 | `scripts/examples/mobile-width.js` | via `cdp.mjs` | Switches to a phone-sized window and the mobile layout |
 
@@ -46,6 +49,9 @@ You can also run the scripts by hand. See [SKILL.md](SKILL.md) for the full work
 
 - Everything lives under `~/obsidian-test` inside WSL (configurable with `OBS_TEST_ROOT`). The profile knows only the throwaway vault.
 - `reset-vault.sh` deletes that folder only if it is new, empty or carries the `.obsidian-throwaway-test-vault` marker, and refuses `/`, your home folder and Windows drives.
+- `reset-vault.sh` won't touch a running instance, and `launch.sh` won't start on a port something else holds, so one session can't clobber another's.
+- The DevTools port listens on localhost only. Anything on your machine that can reach it can run code as your WSL user, so stop instances when you're done.
+- `install.sh` installs the Obsidian `.deb` as root, trusting GitHub's HTTPS (Obsidian publishes no separate checksums). Read it first if that matters to you.
 - `cdp.mjs` refuses to act unless the connected vault has the marker and lives on the WSL filesystem, so it cannot drive your everyday Obsidian even if it is listening on the same port.
 - WSLg is bypassed, so no Obsidian window appears on your desktop.
 

@@ -1,5 +1,5 @@
 // Generic first check after launch:
-//   node <skill>/scripts/cdp.mjs eval <skill>/scripts/examples/smoke.js
+//   node <skill>/scripts/cdp.mjs [-i N] eval <skill>/scripts/examples/smoke.js
 //
 // The file body runs inside an async function in the Obsidian renderer, so it can
 // `await` and must `return` a JSON-serialisable value.
@@ -17,11 +17,18 @@ const enabled = () => [...app.plugins.enabledPlugins];
 const allLoaded = () => enabled().length > 0 && enabled().every((id) => app.plugins.plugins[id]);
 for (let i = 0; i < 50 && !allLoaded(); i++) await sleep(200);
 await sleep(500); // let onload() finish registering commands
-activeDocument.querySelectorAll('.modal-container .modal-close-button').forEach((button) => button.click());
+// Close any modal still open (e.g. a plugin's welcome dialog) so later checks start
+// from a clean workspace, but report what was closed: it may be what you're testing.
+const closedModals = [...activeDocument.querySelectorAll('.modal-container')].map((container) => {
+	const title = container.querySelector('.modal-title')?.innerText || container.innerText.slice(0, 60);
+	container.querySelector('.modal-close-button')?.click();
+	return title;
+});
 
 return {
 	vault: app.vault.getName(),
 	trustedNow: Boolean(trust),
+	closedModals,
 	isMobile: app.isMobile,
 	plugins: enabled().map((id) => ({
 		id,
